@@ -1,4 +1,4 @@
-# Moncy Yohannan — Portfolio Website
+# Aryan — Portfolio Website
 
 > A creative developer & designer portfolio built with React, Three.js, GSAP, Tailwind CSS v4, and Vite.
 
