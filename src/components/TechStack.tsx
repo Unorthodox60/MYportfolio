@@ -127,7 +127,9 @@ function Pointer({ vec = new THREE.Vector3(), isActive }: PointerProps) {
 }
 
 const TechStack = () => {
+  const isMobile = typeof window !== "undefined" && window.innerWidth <= 1024;
   const [isActive, setIsActive] = useState(false);
+  const activeSpheres = isMobile ? spheres.slice(0, 12) : spheres;
 
   // Refresh ScrollTrigger after this lazy-loaded component mounts
   // so ScrollSmoother recalculates the total page height
@@ -136,28 +138,16 @@ const TechStack = () => {
   }, []);
 
   useEffect(() => {
-    const handleScroll = () => {
-      const scrollY = window.scrollY || document.documentElement.scrollTop;
-      const threshold = document
-        .getElementById("work")!
-        .getBoundingClientRect().top;
-      setIsActive(scrollY > threshold);
-    };
-    document.querySelectorAll(".header a").forEach((elem) => {
-      const element = elem as HTMLAnchorElement;
-      element.addEventListener("click", () => {
-        const interval = setInterval(() => {
-          handleScroll();
-        }, 10);
-        setTimeout(() => {
-          clearInterval(interval);
-        }, 1000);
-      });
+    const trigger = ScrollTrigger.create({
+      trigger: ".techstack",
+      start: "top 120%",
+      end: "bottom -20%",
+      onEnter: () => setIsActive(true),
+      onLeave: () => setIsActive(false),
+      onEnterBack: () => setIsActive(true),
+      onLeaveBack: () => setIsActive(false),
     });
-    window.addEventListener("scroll", handleScroll);
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
+    return () => trigger.kill();
   }, []);
   const materials = useMemo(() => {
     return textures.map(
@@ -179,7 +169,7 @@ const TechStack = () => {
       <h2> My Techstack</h2>
 
       <Canvas
-        shadows
+        shadows={!isMobile}
         frameloop={isActive ? "always" : "never"}
         gl={{ alpha: true, stencil: false, depth: false, antialias: false }}
         dpr={typeof window !== "undefined" && window.innerWidth <= 1024 ? [1, 1.5] : [1, 2]}
@@ -199,7 +189,7 @@ const TechStack = () => {
         <directionalLight position={[0, 5, -4]} intensity={2} />
         <Physics gravity={[0, 0, 0]}>
           <Pointer isActive={isActive} />
-          {spheres.map((props, i) => (
+          {activeSpheres.map((props, i) => (
             <SphereGeo
               key={i}
               {...props}
@@ -213,9 +203,11 @@ const TechStack = () => {
           environmentIntensity={0.5}
           environmentRotation={[0, 4, 2]}
         />
-        <EffectComposer enableNormalPass={false}>
-          <N8AO halfRes color="#0f002c" aoRadius={2} intensity={1.15} />
-        </EffectComposer>
+        {!isMobile && (
+          <EffectComposer enableNormalPass={false}>
+            <N8AO halfRes color="#0f002c" aoRadius={2} intensity={1.15} />
+          </EffectComposer>
+        )}
       </Canvas>
     </div>
   );
